@@ -16,7 +16,7 @@ def load_data():
         'Problem (formerly Complaint Type)', 'Problem Detail (formerly Descriptor)', 
         'Location Type', 'Incident Zip', 'Borough', 'Status', 'Latitude', 'Longitude'
     ]
-    df = pd.read_csv(filepath, usecols=usecols, low_memory=False)#, nrows=5000000)
+    df = pd.read_csv(filepath, usecols=usecols, low_memory=False, nrows=5000000)
     
     # Data Cleaning
     df['Created Date'] = pd.to_datetime(df['Created Date'], errors='coerce')
@@ -141,6 +141,22 @@ with tab2:
         fig5.update_layout(xaxis=dict(tickmode='array', tickvals=list(range(1,13)), ticktext=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']))
         st.plotly_chart(fig5, width="stretch")
 
+    # Viz 5b: Heatmap by Day of Week
+    st.subheader("5b. Heatmap: Top Complaints by Day of the Week")
+    if not df_top_comp.empty:
+        day_comp = df_top_comp.groupby(['Day of Week', 'Complaint Type']).size().reset_index(name='Count')
+        day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        fig5b = px.density_heatmap(
+            day_comp, 
+            x='Day of Week', 
+            y='Complaint Type', 
+            z='Count', 
+            histfunc='sum', 
+            color_continuous_scale='ylorrd',
+            category_orders={'Day of Week': day_order}
+        )
+        st.plotly_chart(fig5b, width="stretch")
+
 # ==========================================
 # TAB 3: AGENCY & RESOLUTION EQUITY
 # ==========================================
@@ -194,7 +210,7 @@ with tab4:
     df_top2 = filtered_df[filtered_df['Complaint Type'].isin(top_10_complaints)]
     if not df_top2.empty:
         boro_comp = df_top2.groupby(['Borough', 'Complaint Type']).size().reset_index(name='Count')
-        fig10 = px.density_heatmap(boro_comp, x='Borough', y='Complaint Type', z='Count', histfunc='sum', color_continuous_scale='ylgnbu')
+        fig10 = px.density_heatmap(boro_comp, x='Complaint Type', y='Borough', z='Count', histfunc='sum', color_continuous_scale='ylgnbu')
         st.plotly_chart(fig10, width="stretch")
     
     # Viz 11: Correlation
